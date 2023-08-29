@@ -19,6 +19,8 @@ public:
     void setGravity(float x, float y);
     void setBrush(Brush *brush);
 
+    void createWalls(int thickness);
+
     Brush* getBrush();
 
     void insert(Particle *p);

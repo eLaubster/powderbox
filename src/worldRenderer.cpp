@@ -82,10 +82,12 @@ void WorldRenderer::draw() {
     glClearColor(0.08627450980392157, 0.08627450980392157, 0.11372549019607843, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBegin(GL_POINTS);
+    //glBegin(GL_POINTS);
    
     int hw = width / 2;
     int hh = height / 2;
+
+    // TODO: Find a more efficient way of rendering particles
 
     for(int x = 0; x < world->width; x++) {
         for(int y = 0; y < world->height; y++) {
@@ -97,17 +99,27 @@ void WorldRenderer::draw() {
                 ParticleType pt = world->types[world->particleMap[x][y]];
                 glColor3f(pt.r, pt.g, pt.b);
 
-                for(int px = 0; px < scaleFactor; px++) {
-                    for(int py = 0; py < scaleFactor; py++) {
-                        glVertex2i(mx+px, my+py);
-                    }
-                }
+                
+                glBegin(GL_QUADS);
+                glVertex2i(mx, my);
+                glVertex2i(mx+scaleFactor, my);
+                glVertex2i(mx+scaleFactor, my+scaleFactor);
+                glVertex2i(mx, my+scaleFactor);
+                glEnd();
+
+                //glBegin(GL_POINTS);
+                //for(int px = 0; px < scaleFactor; px++) {
+                //    for(int py = 0; py < scaleFactor; py++) {
+                //        glVertex2i(mx+px, my+py);
+                //    }
+                //}
+                //glEnd();
             }
 
         }
     }
 
-    glEnd();
+    //glEnd();
 
     Brush *b = world->getBrush();
 

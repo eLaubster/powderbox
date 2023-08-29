@@ -12,6 +12,7 @@ int main (int argc, char *argv[]) {
     
     World world;
     world.setGravity(0, 0.005);
+    world.createWalls(2);
 
     Brush b = Brush();
     b.world = &world;
@@ -26,8 +27,6 @@ int main (int argc, char *argv[]) {
     callbackManager.init();
     
     while(!renderer.close) {
-        double currentTime = glfwGetTime();
-
         world.update();
 
         renderer.draw();

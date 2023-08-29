@@ -18,7 +18,6 @@
 using json = nlohmann::json;
 
 World::World() {
-
     for(int x = 0; x < width; x++) {
         for(int y = 0; y < height; y++) {
             particleMap[x][y] = 0;
@@ -26,6 +25,7 @@ World::World() {
     }
 
     loadTypes();
+
 }
 
 void World::loadTypes() {
@@ -33,7 +33,6 @@ void World::loadTypes() {
     // TODO: Compile json into executable and reference it from there. 
     // Might be easiest to just hold it in a .h file as a string
     std::ifstream typeFile("../res/particleTypes.json", std::ifstream::binary);
-
     json ptypes = json::parse(typeFile);
 
     for(json type : ptypes) {
@@ -71,12 +70,24 @@ void World::loadTypes() {
         ParticleType pt = types[i];
 
         if(pt.name != "")
-        std::cout << i << " : " << pt.name << " : " << pt.properties << std::endl;
+        std::cout << i << " : " << pt.name << ": \t" << std::bitset<16>(pt.properties) << std::endl;
+    }
+}
+
+void World::createWalls(int thickness) {
+    for(int x = 0; x < width; x++) {
+        for(int y = 0; y < height; y++) {
+            if(x <= thickness || x >= width-thickness || y <= thickness || y >= height-thickness) {
+                Particle p(Vec2i(x, y));
+                p.type = 1;
+
+                insert(&p);
+            }
+        }
     }
 }
 
 void World::insert(Particle *p) {
-
     if(p->pos.x > width-1 || p->pos.x < 0) return;
     if(p->pos.y > height-1 || p->pos.y < 0) return;
 
@@ -146,16 +157,12 @@ void World::updateParticle(Particle *p) {
 
     // Basic movement calculations
     if(props & TYPE_POW || props & TYPE_LIQUID) {
-        if(pos->y < height-1 && !particleBelow) {
+        if(!particleBelow) {
             // TODO: Add actual physics calculations with acceleration and velocity
             //int nx = pos->x + p->vel.x;
             //int ny = pos->y + p->vel.y;
             int nx = pos->x;
             int ny = pos->y + 1;
-
-            if(ny > height-1) {
-                ny = height-1;
-            }
 
             pos->x = nx;
             pos->y = ny;
@@ -166,17 +173,12 @@ void World::updateParticle(Particle *p) {
     // TODO: Add support for stacking in other directions, not based on gravity
     if(props & TYPE_POW && particleBelow && isSettled(pos->x, pos->y+1)) {
         if(!particleMap[pos->x+1][pos->y+1]) {
-            if(pos->x < width-1) { 
                 pos->x++;
                 pos->y++;
-            }
         } else if(!particleMap[pos->x-1][pos->y+1]) {
-            if(pos->x > 0) { 
                 pos->x--;
                 pos->y++;
-            }
         }
-
         
     }
 
@@ -184,22 +186,23 @@ void World::updateParticle(Particle *p) {
     if(props & TYPE_LIQUID && particleBelow) {
         // Move along velocity vector until hitting another particle, then bounce
             if(!particleMap[pos->x+1][pos->y]) {
-                if(pos->x < width-1) 
                 pos->x++;
             } else if(!particleMap[pos->x-1][pos->y]) {
-                if(pos->x > 0)
                 pos->x--;
             }
 
             if(!particleMap[pos->x][pos->y+1]) {
                 pos->y++;
             }
-
     }
+
+    if(pos->x > width-1 || pos->x < 0 || pos->y > height-1 || pos->y < 0) {
+        p->type = 0;
+    }
+
     // Update particleMap and updateMap to include new position
     particleMap[pos->x][pos->y] = p->type;
     updateMap[pos->x][pos->y] = 1;
-
 }
 
 void World::flushMap() {
