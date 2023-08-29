@@ -10,6 +10,7 @@ class Brush {
 
         void setPos(double x, double y);
         void setPos(int x, int y);
+        void setType(short t);
         void setEnabled(int state);
         void setScaleFactor(short scale);
 
@@ -27,7 +28,7 @@ class Brush {
         static bool enabled;
         static float size;
         int scaleFactor;
-        short type;
+        static short type;
         
 
 };

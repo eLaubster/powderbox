@@ -8,9 +8,9 @@
 Vec2i Brush::pos = Vec2i(0,0);
 bool Brush::enabled = false;
 float Brush::size = 1;
+short Brush::type = 1;
 
 Brush::Brush() {
-    type = 1;
 }
 
 void Brush::setPos(double x, double y) {
@@ -20,6 +20,10 @@ void Brush::setPos(double x, double y) {
 void Brush::setPos(int x, int y) {
     pos.x = x;
     pos.y = y;
+}
+
+void Brush::setType(short t) {
+    type = t;
 }
 
 void Brush::setEnabled(int state) {

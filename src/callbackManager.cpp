@@ -32,6 +32,39 @@ void CallbackManager::keyCallback(GLFWwindow *window, int key, int scancode, int
         brush->changeSize(1);
     }
 
+    switch(key) {
+        case GLFW_KEY_0:
+            brush->setType(1);
+            break;
+        case GLFW_KEY_1:
+            brush->setType(2);
+            break;
+        case GLFW_KEY_2:
+            brush->setType(3);
+            break;
+        case GLFW_KEY_3:
+            brush->setType(4);
+            break;
+        case GLFW_KEY_4:
+            brush->setType(5);
+            break;
+        case GLFW_KEY_5:
+            brush->setType(6);
+            break;
+        case GLFW_KEY_6:
+            brush->setType(7);
+            break;
+        case GLFW_KEY_7:
+            brush->setType(8);
+            break;
+        case GLFW_KEY_8:
+            brush->setType(9);
+            break;
+        case GLFW_KEY_9:
+            brush->setType(10);
+            break;
+    }
+
 }
 
 void CallbackManager::cursorPosCallback(GLFWwindow *window, double posx, double posy) {

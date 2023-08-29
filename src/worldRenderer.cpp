@@ -84,7 +84,6 @@ void WorldRenderer::draw() {
 
     glBegin(GL_POINTS);
    
-    glColor4f((float)241/255,(float)216/255,(float)181/255,1);
     int hw = width / 2;
     int hh = height / 2;
 
@@ -94,6 +93,9 @@ void WorldRenderer::draw() {
             if(world->particleMap[x][y] != 0) {
                 int mx = x * scaleFactor;
                 int my = y * scaleFactor;
+
+                ParticleType pt = world->types[world->particleMap[x][y]];
+                glColor3f(pt.r, pt.g, pt.b);
 
                 for(int px = 0; px < scaleFactor; px++) {
                     for(int py = 0; py < scaleFactor; py++) {

@@ -3,10 +3,19 @@
 #include "particle.h"
 #include "brush.h"
 #include "simConfig.h"
+#include "particleTypeDefs.h"
+#include <_types/_uint16_t.h>
+#include <_types/_uint32_t.h>
 #include <iostream>
 #include <ostream>
+#include <sstream>
 #include <sys/types.h>
 #include <vector>
+#include <fstream>
+#include <array>
+
+#include "json.hpp"
+using json = nlohmann::json;
 
 World::World() {
 
@@ -14,6 +23,55 @@ World::World() {
         for(int y = 0; y < height; y++) {
             particleMap[x][y] = 0;
         }
+    }
+
+    loadTypes();
+}
+
+void World::loadTypes() {
+
+    // TODO: Compile json into executable and reference it from there. 
+    // Might be easiest to just hold it in a .h file as a string
+    std::ifstream typeFile("../res/particleTypes.json", std::ifstream::binary);
+
+    json ptypes = json::parse(typeFile);
+
+    for(json type : ptypes) {
+        ParticleType pt;
+
+        pt.id = type["id"];
+        pt.name = type["name"];
+
+        // Load color data from hex string
+        std::string hexColor = type["color"];
+        std::istringstream converter(hexColor);
+        unsigned int color;
+        converter >> std::hex >> color;
+        pt.setColor(color);
+
+        // Set general properties of pt first
+        json properties = type["properties"];
+        uint16_t propInt = 0;
+
+        // Use if/else if for states of matter because each particle can only be one
+        if(properties["powder"] == true) propInt += TYPE_POW;
+        else if(properties["liquid"] == true)  propInt += TYPE_LIQUID;
+        else if(properties["solid"] == true) propInt += TYPE_SOLID;
+
+        pt.properties = propInt;
+
+        // Set specific properties of pt
+        pt.mass = type["mass"];
+
+        // Insert into types array
+        types[pt.id] = pt;
+    }
+
+    for(int i = 0; i < 32; i ++) {
+        ParticleType pt = types[i];
+
+        if(pt.name != "")
+        std::cout << i << " : " << pt.name << " : " << pt.properties << std::endl;
     }
 }
 
@@ -76,7 +134,8 @@ void World::updateParticle(Particle *p) {
     if(!p->type) return;
 
     Vec2i *pos = &p->pos;
-
+    short type = p->type;
+    uint16_t props = (uint32_t)types[(int)type].properties;
     particleMap[pos->x][pos->y] = 0;
 
     // Check for particle directly underneath
@@ -86,36 +145,61 @@ void World::updateParticle(Particle *p) {
     }
 
     // Basic movement calculations
-    if(pos->y < height-1 && !particleBelow) {
-        // TODO: Add actual physics calculations with acceleration and velocity
-        //int nx = pos->x + p->vel.x;
-        //int ny = pos->y + p->vel.y;
-        int nx = pos->x;
-        int ny = pos->y + 1;
+    if(props & TYPE_POW || props & TYPE_LIQUID) {
+        if(pos->y < height-1 && !particleBelow) {
+            // TODO: Add actual physics calculations with acceleration and velocity
+            //int nx = pos->x + p->vel.x;
+            //int ny = pos->y + p->vel.y;
+            int nx = pos->x;
+            int ny = pos->y + 1;
 
-        if(ny > height-1) {
-            ny = height-1;
+            if(ny > height-1) {
+                ny = height-1;
+            }
+
+            pos->x = nx;
+            pos->y = ny;
         }
-
-        pos->x = nx;
-        pos->y = ny;
     }
 
     // Vertical stacking calculations
     // TODO: Add support for stacking in other directions, not based on gravity
-    if(particleBelow && isSettled(pos->x, pos->y+1)) {
+    if(props & TYPE_POW && particleBelow && isSettled(pos->x, pos->y+1)) {
         if(!particleMap[pos->x+1][pos->y+1]) {
-            if(pos->x < width-1) 
+            if(pos->x < width-1) { 
                 pos->x++;
+                pos->y++;
+            }
         } else if(!particleMap[pos->x-1][pos->y+1]) {
-            if(pos->x > 0) 
+            if(pos->x > 0) { 
                 pos->x--;
+                pos->y++;
+            }
         }
+
+        
     }
 
+    //TODO: Make liquid physics a little bit better, they're kinda wack right now
+    if(props & TYPE_LIQUID && particleBelow) {
+        // Move along velocity vector until hitting another particle, then bounce
+            if(!particleMap[pos->x+1][pos->y]) {
+                if(pos->x < width-1) 
+                pos->x++;
+            } else if(!particleMap[pos->x-1][pos->y]) {
+                if(pos->x > 0)
+                pos->x--;
+            }
+
+            if(!particleMap[pos->x][pos->y+1]) {
+                pos->y++;
+            }
+
+    }
     // Update particleMap and updateMap to include new position
     particleMap[pos->x][pos->y] = p->type;
-    updateMap[pos->x][pos->y] = 1; 
+    updateMap[pos->x][pos->y] = 1;
+
 }
 
 void World::flushMap() {
@@ -136,8 +220,15 @@ void World::flushMap() {
 }
 
 bool World::isSettled(int x, int y) {
+    return(isSettled(x, y, 0));
+}
+
+bool World::isSettled(int x, int y, uint16_t props) {
 
     //TODO: implement a settleMap for optimization
+    if((uint32_t)types[particleMap[x][y]].properties & TYPE_SOLID) {
+        return true;
+    }
 
     if(y == height-1) return true;
     int py = y+1;
@@ -145,6 +236,10 @@ bool World::isSettled(int x, int y) {
     while(py < height-1) {
        if(!particleMap[x][py]) {
            return false;
+       }
+
+       if((uint32_t)types[particleMap[x][py]].properties & TYPE_SOLID) {
+           return true;
        }
        py++;
     }
