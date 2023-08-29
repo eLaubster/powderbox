@@ -19,7 +19,7 @@
             "powder" : true
         },
 
-        "mass" : 5,
+        "mass" : 15,
 
         "color": "f1d8b5"
     },
@@ -30,7 +30,7 @@
         "properties" : {
             "liquid" : true
         }, 
-        "mass" : 15,
+        "mass" : 10,
 
         "color" : "4281ff"
     }
