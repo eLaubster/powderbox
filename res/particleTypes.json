@@ -1,0 +1,38 @@
+
+{
+    "wall" : {
+        "name" : "wall",
+        "id" : 1,
+        "properties": {
+            "solid" : true
+        },
+
+        "mass" : 0,
+
+        "color" : "ababab"
+    },
+
+    "powder" : {
+        "name" : "powder",
+        "id": 2,
+        "properties" : {
+            "powder" : true
+        },
+
+        "mass" : 5,
+
+        "color": "f1d8b5"
+    },
+
+    "water" : {
+        "name" : "water",
+        "id": 3,
+        "properties" : {
+            "liquid" : true
+        }, 
+        "mass" : 15,
+
+        "color" : "4281ff"
+    }
+
+}
